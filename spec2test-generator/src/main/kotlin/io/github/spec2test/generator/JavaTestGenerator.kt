@@ -36,11 +36,19 @@ class JavaTestGenerator {
     fun generate(module: TlaModule, config: Config): List<GeneratedTest> {
         val results = mutableListOf<GeneratedTest>()
 
-        if (config.mode == GenerationMode.SEQUENTIAL || config.mode == GenerationMode.CONCURRENT) {
-            results.add(generateSequentialTest(module, config))
-        }
-        if (config.mode == GenerationMode.CONCURRENT) {
-            results.add(generateConcurrentTest(module, config))
+        when (config.mode) {
+            GenerationMode.SEQUENTIAL -> {
+                results.add(generateSequentialTest(module, config))
+            }
+            GenerationMode.CONCURRENT -> {
+                results.add(generateSequentialTest(module, config))
+                results.add(generateConcurrentTest(module, config))
+            }
+            GenerationMode.TRACE_GUIDED -> {
+                throw IllegalArgumentException(
+                    "TRACE_GUIDED generation requires a TLC state graph. Use TlcTraceGenerator directly."
+                )
+            }
         }
 
         return results

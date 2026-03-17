@@ -35,6 +35,14 @@ class Spec2TestPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         val extension = project.extensions.create("spec2test", Spec2TestExtension::class.java)
+        extension.tlaSourceDir.convention(project.layout.projectDirectory.dir("src/main/tla"))
+        extension.outputDir.convention(project.layout.buildDirectory.dir("generated/spec2test"))
+        extension.packageName.convention(defaultPackageName(project))
+        extension.mode.convention("SEQUENTIAL")
+        extension.threads.convention(3)
+        extension.stepsPerTest.convention(100)
+        extension.numRandomTests.convention(50)
+        extension.embedInvariants.convention(true)
 
         val generateTask = project.tasks.register("generateSpec2Tests", GenerateSpec2TestsTask::class.java) { task ->
             task.tlaSourceDir.set(extension.tlaSourceDir)
@@ -56,6 +64,15 @@ class Spec2TestPlugin : Plugin<Project> {
             }
 
             project.tasks.findByName("compileTestJava")?.dependsOn(generateTask)
+        }
+    }
+
+    private fun defaultPackageName(project: Project): String {
+        val group = project.group.toString()
+        return if (group.isNotBlank() && group != "unspecified") {
+            "$group.generated"
+        } else {
+            "generated.spec2test"
         }
     }
 }

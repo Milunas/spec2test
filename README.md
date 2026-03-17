@@ -74,6 +74,84 @@ Automatically generates JUnit 5 test suites from TLA+ formal specifications, pro
 ./gradlew build
 ```
 
+### Preview Generated Tests From A Single Spec
+
+If you do not have a project and just want to see what Java tests would be generated from a `.tla` file, run the built-in CLI from this repository:
+
+```bash
+./gradlew -q :spec2test-cli:run --args='--spec examples/reservation/Reservation.tla --stdout'
+```
+
+That prints the generated Java test classes directly to stdout.
+
+If you want files instead of stdout:
+
+```bash
+./gradlew :spec2test-cli:run --args='--spec /absolute/path/to/YourSpec.tla --out build/generated/spec2test-preview'
+```
+
+You can also choose the generation mode:
+
+```bash
+./gradlew :spec2test-cli:run --args='--spec /absolute/path/to/YourSpec.tla --mode CONCURRENT --stdout'
+```
+
+Supported preview modes are `SEQUENTIAL` and `CONCURRENT`.
+
+`TRACE_GUIDED` is not available from a `.tla` file alone because it requires a TLC state graph. That path is available through the lower-level `TlcTraceGenerator` API, not the simple preview CLI.
+
+### Use In An Existing Gradle Project
+
+You do not need a separate wrapper project. Apply the plugin in your existing Java or Kotlin/JVM build.
+
+If you are using the local `spec2test` checkout before publishing it, add this to `settings.gradle.kts` in the existing project:
+
+```kotlin
+pluginManagement {
+    includeBuild("/<path>/spec2test")
+}
+```
+
+Then add this to `build.gradle.kts` in that existing project:
+
+```kotlin
+plugins {
+    java
+    id("io.github.spec2test")
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation(platform("org.junit:junit-bom:5.11.0"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+}
+
+spec2test {
+    tlaSourceDir.set(layout.projectDirectory.dir("src/main/tla"))
+    outputDir.set(layout.buildDirectory.dir("generated/spec2test"))
+    packageName.set("com.example.generated")
+    mode.set("SEQUENTIAL")
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+```
+
+Put your `.tla` files under `src/main/tla`, then run:
+
+```bash
+./gradlew generateSpec2Tests test
+```
+
+Notes:
+- `generateSpec2Tests` is available only in a build where the plugin is applied.
+- Running `./gradlew generateSpec2Tests` in the `spec2test` repository itself fails unless this repository is acting as the consumer build.
+- If you keep the defaults, only `src/main/tla` is required; the other settings are optional.
+
 ### Programmatic Usage
 
 ```kotlin

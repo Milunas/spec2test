@@ -5,5 +5,6 @@ include(
     "spec2test-parser",
     "spec2test-generator",
     "spec2test-runtime",
-    "spec2test-gradle"
+    "spec2test-gradle",
+    "spec2test-cli"
 )

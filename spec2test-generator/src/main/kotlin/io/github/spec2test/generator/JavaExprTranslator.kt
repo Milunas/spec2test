@@ -18,7 +18,8 @@ import io.github.spec2test.ir.*
  */
 class JavaExprTranslator(
     private val variables: Map<String, TlaType>,
-    private val constants: Map<String, TlaType>
+    private val constants: Map<String, TlaType>,
+    private val nameAccessor: ((String) -> String)? = null
 ) {
 
     // ─── EXPRESSION TRANSLATION ──────────────────────────────────────────
@@ -69,7 +70,7 @@ class JavaExprTranslator(
         "FALSE" -> "false"
         "Nat" -> "/* Nat */"
         "Int" -> "/* Int */"
-        else -> name
+        else -> if (nameAccessor != null && (name in variables || name in constants)) nameAccessor.invoke(name) else name
     }
 
     // ─── OPERATOR APPLICATION ────────────────────────────────────────────
@@ -342,5 +343,11 @@ class JavaExprTranslator(
             is TlaType.IntervalType -> "0"
             is TlaType.Untyped -> "null"
         }
+
+        fun toGetterName(varName: String): String =
+            "get${varName.replaceFirstChar { it.uppercaseChar() }}"
+
+        fun toGetterCall(objectRef: String, varName: String): String =
+            "$objectRef.${toGetterName(varName)}()"
     }
 }

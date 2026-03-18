@@ -50,4 +50,38 @@ class Spec2TestCliTest {
         assertThat(stderr.toString()).contains("spec2test: spec file not found:")
         assertThat(stderr.toString()).contains("spec2test: did you mean: examples/reservation/Reservation.tla")
     }
+
+    @Test
+    fun `conformance mode generates interface and abstract test to stdout`() {
+        val specContent = """
+            ---- MODULE Tiny ----
+            EXTENDS Naturals
+            VARIABLE x
+            Init == x = 0
+            Step == x' = x + 1
+            Next == Step
+            Inv == x >= 0
+            Spec == Init /\ [][Next]_x
+            ====
+        """.trimIndent()
+
+        val specFile = Files.writeString(tempDir.resolve("Tiny.tla"), specContent)
+
+        val stdout = ByteArrayOutputStream()
+        val stderr = ByteArrayOutputStream()
+
+        val exitCode = Spec2TestCli.run(
+            args = arrayOf("--spec", specFile.toString(), "--mode", "CONFORMANCE", "--stdout"),
+            workingDir = tempDir.toFile(),
+            stdout = PrintStream(stdout),
+            stderr = PrintStream(stderr)
+        )
+
+        val output = stdout.toString()
+        assertThat(exitCode).isZero()
+        assertThat(output).contains("interface TinySpec")
+        assertThat(output).contains("abstract class AbstractTinyConformanceTest")
+        assertThat(output).contains("protected abstract TinySpec createSubject()")
+        assertThat(output).contains("getX()")
+    }
 }

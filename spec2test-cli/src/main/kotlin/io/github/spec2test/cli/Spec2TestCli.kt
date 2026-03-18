@@ -191,7 +191,7 @@ object Spec2TestCli {
         return try {
             JavaTestGenerator.GenerationMode.valueOf(normalized)
         } catch (_: IllegalArgumentException) {
-            throw IllegalArgumentException("invalid mode '$value' (expected SEQUENTIAL, CONCURRENT, or TRACE_GUIDED)")
+            throw IllegalArgumentException("invalid mode '$value' (expected SEQUENTIAL, CONCURRENT, TRACE_GUIDED, or CONFORMANCE)")
         }
     }
 
@@ -207,7 +207,7 @@ object Spec2TestCli {
               --spec <file>          TLA+ spec file to parse (repeatable)
               --out <dir>            Output directory for generated files
               --package <name>       Java package name for generated tests
-              --mode <mode>          SEQUENTIAL | CONCURRENT
+              --mode <mode>          SEQUENTIAL | CONCURRENT | CONFORMANCE
               --threads <n>          Concurrent generation thread count
               --steps <n>            Steps per generated random/stress test
               --random-tests <n>     Number of random sequential tests

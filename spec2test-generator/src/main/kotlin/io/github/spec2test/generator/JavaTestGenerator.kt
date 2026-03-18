@@ -22,7 +22,7 @@ class JavaTestGenerator {
         val generateHelperComments: Boolean = true
     )
 
-    enum class GenerationMode { SEQUENTIAL, CONCURRENT, TRACE_GUIDED }
+    enum class GenerationMode { SEQUENTIAL, CONCURRENT, TRACE_GUIDED, CONFORMANCE }
 
     data class GeneratedTest(
         val className: String,
@@ -48,6 +48,18 @@ class JavaTestGenerator {
                 throw IllegalArgumentException(
                     "TRACE_GUIDED generation requires a TLC state graph. Use TlcTraceGenerator directly."
                 )
+            }
+            GenerationMode.CONFORMANCE -> {
+                val conformanceGen = JavaConformanceGenerator()
+                val conformanceConfig = JavaConformanceGenerator.Config(
+                    packageName = config.packageName,
+                    stepsPerTest = config.stepsPerTest,
+                    numRandomTests = config.numRandomTests
+                )
+                val files = conformanceGen.generate(module, conformanceConfig)
+                results.addAll(files.map { f ->
+                    GeneratedTest(f.className, f.packageName, f.code, GenerationMode.CONFORMANCE)
+                })
             }
         }
 
